@@ -1,0 +1,39 @@
+name: Store Chat Message
+
+on:
+  repository_dispatch:
+    types: [new-message]
+
+jobs:
+  store-message:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update messages
+        run: |
+          mkdir -p data
+          if [ ! -f data/messages.json ]; then
+            echo '{"messages":[]}' > data/messages.json
+          fi
+          
+          # Add new message to messages.json
+          jq --arg name "${{ github.event.client_payload.name }}" \
+             --arg message "${{ github.event.client_payload.message }}" \
+             --arg timestamp "${{ github.event.client_payload.timestamp }}" \
+             '.messages += [{name: $name, message: $message, timestamp: $timestamp}]' \
+             data/messages.json > temp.json && mv temp.json data/messages.json
+          
+          # Keep only last 100 messages
+          jq '.messages |= .[-100:]' data/messages.json > temp.json && mv temp.json data/messages.json
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/messages.json
+          git commit -m "New chat message" || exit 0
+          git push
