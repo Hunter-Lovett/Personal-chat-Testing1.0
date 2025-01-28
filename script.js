@@ -1,4 +1,4 @@
-const GITHUB_TOKEN = ''; // Replace with your token
+const GITHUB_TOKEN = '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'; // Replace with your token
 const REPO_OWNER = 'Hunter-Lovett'; // Replace with your GitHub username
 const REPO_NAME = 'Personal-chat-Testing1.0'; // Replace with your repository name
 
